@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>프로그램 사용 현황판</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --danger-dark: #b91c1c;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --warning-bg: #fff7ed;
+      --warning-line: #fed7aa;
+      --warning-text: #9a3412;
+      --admin-bg: #eef2ff;
+      --admin-line: #c7d2fe;
+      --admin-text: #3730a3;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      width: min(1040px, calc(100% - 28px));
+      margin: 28px auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing: -0.04em;
+    }
+
+    .desc {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .sync {
+      min-width: 138px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .admin-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--admin-line);
+      background: var(--admin-bg);
+      color: var(--admin-text);
+      border-radius: 13px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .admin-title {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-sub {
+      margin-top: 2px;
+      color: #4f46e5;
+      font-size: 13px;
+    }
+
+    .admin-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .add-row {
+      display: none;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .add-row.admin-on { display: grid; }
+
+    input[type="text"] {
+      width: 100%;
+      height: 44px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 0 13px;
+      font-size: 15px;
+      outline: none;
+      background: #fff;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    button {
+      height: 40px;
+      border: 0;
+      border-radius: 10px;
+      padding: 0 13px;
+      font-weight: 800;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+
+    button:hover { filter: brightness(0.97); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: var(--danger-dark); }
+    .btn-ghost { background: #f3f4f6; color: #374151; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-admin { background: #4f46e5; color: #fff; }
+
+    .top-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .count strong { color: var(--text); }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .program {
+      display: grid;
+      grid-template-columns: minmax(230px, 1fr) minmax(130px, 210px) minmax(210px, auto) minmax(150px, auto);
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px;
+      background: #fff;
+    }
+
+    .program.no-admin {
+      grid-template-columns: minmax(230px, 1fr) minmax(130px, 210px) minmax(210px, auto);
+    }
+
+    .program-main {
+      min-width: 0;
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .program-name {
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 15px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .status.using {
+      color: var(--success);
+      background: var(--success-bg);
+    }
+
+    .status.free {
+      color: #6b7280;
+      background: #f3f4f6;
+    }
+
+    .actions,
+    .admin-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .actions button,
+    .admin-actions button {
+      width: 100%;
+    }
+
+    .admin-actions {
+      display: none;
+    }
+
+    .admin-actions.admin-on {
+      display: grid;
+    }
+
+    .empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 30px 14px;
+      text-align: center;
+      color: var(--muted);
+      background: #f8fafc;
+    }
+
+    .warning {
+      border: 1px solid var(--warning-line);
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .help {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .admin-only-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 860px) {
+      .header { align-items: flex-start; flex-direction: column; }
+      .sync { text-align: left; }
+      .admin-bar { grid-template-columns: 1fr; }
+      .admin-buttons { justify-content: stretch; }
+      .admin-buttons button { flex: 1; }
+      .add-row,
+      .add-row.admin-on { grid-template-columns: 1fr; }
+      .program,
+      .program.no-admin { grid-template-columns: 1fr; align-items: stretch; }
+      .status { justify-content: flex-start; width: 100%; border-radius: 10px; }
+      .actions,
+      .admin-actions.admin-on { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="header">
+      <div>
+        <h1>프로그램 사용 현황판</h1>
+        <p class="desc">1~10개 프로그램을 등록하고, 각 프로그램별 현재 사용자를 실시간으로 확인합니다.</p>
+      </div>
+      <div class="sync" id="syncStatus">연결 준비 중...</div>
+    </section>
+
+    <section class="card">
+      <div class="admin-bar">
+        <div>
+          <div class="admin-title" id="adminModeText">관리자 모드: 꺼짐</div>
+          <div class="admin-sub" id="adminModeSub">일반 사용자는 프로그램 사용시작/사용해제만 할 수 있습니다.</div>
+        </div>
+        <div class="admin-buttons">
+          <button class="btn-admin" id="adminLoginBtn">관리자 로그인</button>
+          <button class="btn-ghost" id="adminLogoutBtn" style="display:none;">관리자 해제</button>
+        </div>
+      </div>
+
+      <div class="add-row" id="addProgramArea">
+        <input id="programNameInput" type="text" maxlength="50" placeholder="등록할 프로그램명 입력 예: MIDAS GEN" />
+        <button class="btn-primary" id="addProgramBtn">프로그램 등록</button>
+      </div>
+      <div class="help" id="helpText">프로그램 등록, 이름 변경, 삭제는 관리자 모드에서만 표시됩니다.</div>
+      <div class="warning" id="errorBox"></div>
+    </section>
+
+    <section class="card">
+      <div class="top-note">
+        <div class="count">등록 프로그램: <strong id="programCount">0</strong> / 10</div>
+        <button class="btn-ghost" id="refreshBtn">새로고침</button>
+      </div>
+      <div class="list" id="programList"></div>
+    </section>
+  </main>
+
+  <script>
+    // Firebase Realtime Database 주소입니다. 사용자가 제공한 주소를 그대로 사용합니다.
+    const DATABASE_URL = "https://gpt-dashboard-71602-default-rtdb.firebaseio.com";
+    const ROOT_PATH = "programUsageDashboard/programs";
+    const MAX_PROGRAMS = 10;
+    const POLL_INTERVAL_MS = 2000;
+
+    // 관리자 모드용 간단 비밀번호입니다. 실제 배포 전 원하는 값으로 바꾸세요.
+    // 정적 HTML 방식이므로 강한 보안이 필요한 경우에는 Firebase Authentication을 추가해야 합니다.
+    const ADMIN_PASSWORD = "1234";
+
+    const programNameInput = document.getElementById("programNameInput");
+    const addProgramBtn = document.getElementById("addProgramBtn");
+    const addProgramArea = document.getElementById("addProgramArea");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const programList = document.getElementById("programList");
+    const programCount = document.getElementById("programCount");
+    const syncStatus = document.getElementById("syncStatus");
+    const errorBox = document.getElementById("errorBox");
+    const adminLoginBtn = document.getElementById("adminLoginBtn");
+    const adminLogoutBtn = document.getElementById("adminLogoutBtn");
+    const adminModeText = document.getElementById("adminModeText");
+    const adminModeSub = document.getElementById("adminModeSub");
+    const helpText = document.getElementById("helpText");
+
+    let programs = {};
+    let isWriting = false;
+    let pollTimer = null;
+    let isAdmin = localStorage.getItem("programUsageDashboardAdmin") === "true";
+
+    function dbUrl(path = ROOT_PATH) {
+      return `${DATABASE_URL.replace(/\/$/, "")}/${path}.json`;
+    }
+
+    function nowText() {
+      return new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
+    function setStatus(text) {
+      syncStatus.textContent = text;
+    }
+
+    function showError(message) {
+      if (!message) {
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
+        return;
+      }
+      errorBox.style.display = "block";
+      errorBox.textContent = message;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizePrograms(raw) {
+      if (!raw || typeof raw !== "object") return [];
+      return Object.entries(raw)
+        .map(([id, item]) => ({
+          id,
+          name: String(item?.name || "이름 없음"),
+          userName: String(item?.userName || ""),
+          inUse: Boolean(item?.inUse),
+          createdAt: Number(item?.createdAt || 0),
+          updatedAt: Number(item?.updatedAt || 0)
+        }))
+        .sort((a, b) => {
+          const aTime = a.createdAt || a.updatedAt || 0;
+          const bTime = b.createdAt || b.updatedAt || 0;
+          return aTime - bTime || a.name.localeCompare(b.name, "ko-KR");
+        });
+    }
+
+    function renderAdminMode() {
+      adminModeText.textContent = isAdmin ? "관리자 모드: 켜짐" : "관리자 모드: 꺼짐";
+      adminModeSub.textContent = isAdmin
+        ? "프로그램 등록, 이름 변경, 삭제 버튼이 표시됩니다."
+        : "일반 사용자는 프로그램 사용시작/사용해제만 할 수 있습니다.";
+      adminLoginBtn.style.display = isAdmin ? "none" : "inline-block";
+      adminLogoutBtn.style.display = isAdmin ? "inline-block" : "none";
+      addProgramArea.classList.toggle("admin-on", isAdmin);
+      helpText.textContent = isAdmin
+        ? "프로그램은 최대 10개까지 등록할 수 있습니다. 이름 변경과 삭제는 관리자 모드에서만 가능합니다."
+        : "프로그램 등록, 이름 변경, 삭제는 관리자 모드에서만 표시됩니다.";
+    }
+
+    function render() {
+      const list = normalizePrograms(programs);
+      programCount.textContent = list.length;
+      addProgramBtn.disabled = list.length >= MAX_PROGRAMS;
+      programNameInput.disabled = list.length >= MAX_PROGRAMS;
+      renderAdminMode();
+
+      if (list.length === 0) {
+        programList.innerHTML = `<div class="empty">등록된 프로그램이 없습니다.<br>관리자 모드에서 프로그램명을 입력해 등록하세요.</div>`;
+        return;
+      }
+
+      programList.innerHTML = list.map((program, index) => {
+        const isUsing = program.inUse && program.userName.trim();
+        const statusClass = isUsing ? "using" : "free";
+        const statusText = isUsing ? escapeHtml(program.userName.trim()) : "미사용";
+        const adminButtons = isAdmin ? `
+          <div class="admin-actions admin-on">
+            <button class="btn-ghost" data-action="rename" data-id="${escapeHtml(program.id)}">이름변경</button>
+            <button class="btn-danger" data-action="delete" data-id="${escapeHtml(program.id)}">삭제</button>
+          </div>
+        ` : "";
+
+        return `
+          <article class="program ${isAdmin ? "" : "no-admin"}" data-id="${escapeHtml(program.id)}">
+            <div class="program-main">
+              <span class="program-no">${index + 1}.</span>
+              <span class="program-name">${escapeHtml(program.name)}</span>
+            </div>
+            <div class="status ${statusClass}">${statusText}</div>
+            <div class="actions">
+              <button class="btn-success" data-action="start" data-id="${escapeHtml(program.id)}">사용시작</button>
+              <button class="btn-ghost" data-action="stop" data-id="${escapeHtml(program.id)}">사용해제</button>
+            </div>
+            ${adminButtons}
+          </article>
+        `;
+      }).join("");
+    }
+
+    async function request(method, path, body) {
+      const options = { method };
+      if (body !== undefined) {
+        options.headers = { "Content-Type": "application/json" };
+        options.body = JSON.stringify(body);
+      }
+
+      const response = await fetch(dbUrl(path), options);
+      if (!response.ok) {
+        let detail = "";
+        try { detail = await response.text(); } catch (_) {}
+        throw new Error(`Firebase 요청 실패: ${response.status} ${response.statusText} ${detail}`);
+      }
+      return response.json();
+    }
+
+    async function loadPrograms() {
+      try {
+        const data = await request("GET", ROOT_PATH);
+        programs = data || {};
+        render();
+        showError("");
+        setStatus(`실시간 동기화 중 · ${nowText()}`);
+      } catch (error) {
+        console.error(error);
+        showError("Firebase 연결 또는 권한 오류입니다. Realtime Database Rules에서 programUsageDashboard 경로의 read/write 권한을 확인하세요. 상세: " + error.message);
+        setStatus("연결 오류");
+      }
+    }
+
+    function requireAdmin() {
+      if (isAdmin) return true;
+      alert("관리자 모드에서만 가능한 기능입니다.");
+      return false;
+    }
+
+    function loginAdmin() {
+      const value = prompt("관리자 비밀번호를 입력하세요.");
+      if (value === null) return;
+      if (value !== ADMIN_PASSWORD) {
+        alert("관리자 비밀번호가 맞지 않습니다.");
+        return;
+      }
+      isAdmin = true;
+      localStorage.setItem("programUsageDashboardAdmin", "true");
+      render();
+    }
+
+    function logoutAdmin() {
+      isAdmin = false;
+      localStorage.removeItem("programUsageDashboardAdmin");
+      render();
+    }
+
+    async function addProgram() {
+      if (!requireAdmin()) return;
+
+      const name = programNameInput.value.trim();
+      if (!name) {
+        alert("프로그램명을 입력하세요.");
+        programNameInput.focus();
+        return;
+      }
+
+      const list = normalizePrograms(programs);
+      if (list.length >= MAX_PROGRAMS) {
+        alert("프로그램은 최대 10개까지 등록할 수 있습니다.");
+        return;
+      }
+
+      const duplicated = list.some(item => item.name.trim().toLowerCase() === name.toLowerCase());
+      if (duplicated && !confirm("같은 이름의 프로그램이 이미 있습니다. 그래도 등록할까요?")) return;
+
+      isWriting = true;
+      try {
+        const id = `program_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        await request("PUT", `${ROOT_PATH}/${id}`, {
+          name,
+          inUse: false,
+          userName: "",
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+        programNameInput.value = "";
+        await loadPrograms();
+      } catch (error) {
+        console.error(error);
+        showError("프로그램 등록에 실패했습니다. 상세: " + error.message);
+      } finally {
+        isWriting = false;
+      }
+    }
+
+    async function startUse(id) {
+      const current = programs[id];
+      if (!current) return;
+
+      const savedName = localStorage.getItem("programUsageDashboardUserName") || "";
+      const inputValue = prompt(`${current.name} 사용자를 입력하세요.`, savedName);
+      if (inputValue === null) return;
+      const userName = inputValue.trim();
+      if (!userName) return;
+      localStorage.setItem("programUsageDashboardUserName", userName);
+
+      if (current.inUse && current.userName && current.userName !== userName) {
+        const ok = confirm(`현재 ${current.userName} 님이 사용 중입니다. ${userName} 님으로 변경할까요?`);
+        if (!ok) return;
+      }
+
+      isWriting = true;
+      try {
+        await request("PATCH", `${ROOT_PATH}/${id}`, {
+          inUse: true,
+          userName,
+          updatedAt: Date.now()
+        });
+        await loadPrograms();
+      } catch (error) {
+        console.error(error);
+        showError("사용시작 처리에 실패했습니다. 상세: " + error.message);
+      } finally {
+        isWriting = false;
+      }
+    }
+
+    async function stopUse(id) {
+      const current = programs[id];
+      if (!current) return;
+
+      isWriting = true;
+      try {
+        await request("PATCH", `${ROOT_PATH}/${id}`, {
+          inUse: false,
+          userName: "",
+          updatedAt: Date.now()
+        });
+        await loadPrograms();
+      } catch (error) {
+        console.error(error);
+        showError("사용해제 처리에 실패했습니다. 상세: " + error.message);
+      } finally {
+        isWriting = false;
+      }
+    }
+
+    async function renameProgram(id) {
+      if (!requireAdmin()) return;
+      const current = programs[id];
+      if (!current) return;
+
+      const inputValue = prompt("새 프로그램명을 입력하세요.", current.name);
+      if (inputValue === null) return;
+      const newName = inputValue.trim();
+      if (!newName) return;
+
+      isWriting = true;
+      try {
+        await request("PATCH", `${ROOT_PATH}/${id}`, {
+          name: newName,
+          updatedAt: Date.now()
+        });
+        await loadPrograms();
+      } catch (error) {
+        console.error(error);
+        showError("이름 변경에 실패했습니다. 상세: " + error.message);
+      } finally {
+        isWriting = false;
+      }
+    }
+
+    async function deleteProgram(id) {
+      if (!requireAdmin()) return;
+      const current = programs[id];
+      if (!current) return;
+      const ok = confirm(`'${current.name}' 프로그램을 삭제할까요? 사용 상태도 함께 삭제됩니다.`);
+      if (!ok) return;
+
+      isWriting = true;
+      try {
+        await request("DELETE", `${ROOT_PATH}/${id}`);
+        await loadPrograms();
+      } catch (error) {
+        console.error(error);
+        showError("삭제에 실패했습니다. 상세: " + error.message);
+      } finally {
+        isWriting = false;
+      }
+    }
+
+    programList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action][data-id]");
+      if (!button) return;
+      const { action, id } = button.dataset;
+      if (action === "start") startUse(id);
+      if (action === "stop") stopUse(id);
+      if (action === "rename") renameProgram(id);
+      if (action === "delete") deleteProgram(id);
+    });
+
+    addProgramBtn.addEventListener("click", addProgram);
+    refreshBtn.addEventListener("click", loadPrograms);
+    adminLoginBtn.addEventListener("click", loginAdmin);
+    adminLogoutBtn.addEventListener("click", logoutAdmin);
+    programNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") addProgram();
+    });
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => {
+        if (!isWriting) loadPrograms();
+      }, POLL_INTERVAL_MS);
+    }
+
+    renderAdminMode();
+    loadPrograms();
+    startPolling();
+  </script>
+</body>
+</html>

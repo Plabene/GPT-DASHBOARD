@@ -70,6 +70,71 @@
       white-space: nowrap;
     }
 
+
+    .admin-floating {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .admin-mini-btn {
+      height: 32px;
+      border-radius: 999px;
+      padding: 0 11px;
+      font-size: 12px;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    }
+
+    .admin-mini-btn.admin-active {
+      background: #4f46e5;
+      color: #fff;
+    }
+
+    .admin-panel {
+      display: none;
+      width: 230px;
+      border: 1px solid var(--admin-line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.16);
+    }
+
+    .admin-panel.open {
+      display: block;
+    }
+
+    .admin-panel-title {
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .admin-panel-sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+
+    .admin-panel-buttons {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
+    .admin-panel-buttons button {
+      width: 100%;
+      height: 34px;
+      font-size: 12px;
+    }
+
     .card {
       background: var(--card);
       border: 1px solid var(--line);
@@ -294,27 +359,27 @@
   </style>
 </head>
 <body>
+  <div class="admin-floating">
+    <button class="btn-admin admin-mini-btn" id="adminToggleBtn">관리자</button>
+    <div class="admin-panel" id="adminPanel">
+      <div class="admin-panel-title" id="adminModeText">관리자 모드: 꺼짐</div>
+      <div class="admin-panel-sub" id="adminModeSub">일반 사용자는 프로그램 사용시작/사용해제만 할 수 있습니다.</div>
+      <div class="admin-panel-buttons">
+        <button class="btn-admin" id="adminLoginBtn">관리자 로그인</button>
+        <button class="btn-ghost" id="adminLogoutBtn" style="display:none;">관리자 해제</button>
+      </div>
+    </div>
+  </div>
+
   <main class="wrap">
     <section class="header">
       <div>
         <h1>프로그램 사용 현황판</h1>
-        <p class="desc">1~10개 프로그램을 등록하고, 각 프로그램별 현재 사용자를 실시간으로 확인합니다.</p>
       </div>
       <div class="sync" id="syncStatus">연결 준비 중...</div>
     </section>
 
     <section class="card">
-      <div class="admin-bar">
-        <div>
-          <div class="admin-title" id="adminModeText">관리자 모드: 꺼짐</div>
-          <div class="admin-sub" id="adminModeSub">일반 사용자는 프로그램 사용시작/사용해제만 할 수 있습니다.</div>
-        </div>
-        <div class="admin-buttons">
-          <button class="btn-admin" id="adminLoginBtn">관리자 로그인</button>
-          <button class="btn-ghost" id="adminLogoutBtn" style="display:none;">관리자 해제</button>
-        </div>
-      </div>
-
       <div class="add-row" id="addProgramArea">
         <input id="programNameInput" type="text" maxlength="50" placeholder="등록할 프로그램명 입력 예: MIDAS GEN" />
         <button class="btn-primary" id="addProgramBtn">프로그램 등록</button>
@@ -353,6 +418,8 @@
     const errorBox = document.getElementById("errorBox");
     const adminLoginBtn = document.getElementById("adminLoginBtn");
     const adminLogoutBtn = document.getElementById("adminLogoutBtn");
+    const adminToggleBtn = document.getElementById("adminToggleBtn");
+    const adminPanel = document.getElementById("adminPanel");
     const adminModeText = document.getElementById("adminModeText");
     const adminModeSub = document.getElementById("adminModeSub");
     const helpText = document.getElementById("helpText");
@@ -416,6 +483,8 @@
       adminModeSub.textContent = isAdmin
         ? "프로그램 등록, 이름 변경, 삭제 버튼이 표시됩니다."
         : "일반 사용자는 프로그램 사용시작/사용해제만 할 수 있습니다.";
+      adminToggleBtn.textContent = isAdmin ? "관리자 ON" : "관리자";
+      adminToggleBtn.classList.toggle("admin-active", isAdmin);
       adminLoginBtn.style.display = isAdmin ? "none" : "inline-block";
       adminLogoutBtn.style.display = isAdmin ? "inline-block" : "none";
       addProgramArea.classList.toggle("admin-on", isAdmin);
@@ -671,8 +740,15 @@
 
     addProgramBtn.addEventListener("click", addProgram);
     refreshBtn.addEventListener("click", loadPrograms);
+    adminToggleBtn.addEventListener("click", () => {
+      adminPanel.classList.toggle("open");
+    });
     adminLoginBtn.addEventListener("click", loginAdmin);
     adminLogoutBtn.addEventListener("click", logoutAdmin);
+    document.addEventListener("click", (event) => {
+      const insideAdmin = event.target.closest(".admin-floating");
+      if (!insideAdmin) adminPanel.classList.remove("open");
+    });
     programNameInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter") addProgram();
     });

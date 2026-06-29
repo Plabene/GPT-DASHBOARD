@@ -561,12 +561,18 @@
       const current = programs[id];
       if (!current) return;
 
-      const savedName = localStorage.getItem("programUsageDashboardUserName") || "";
-      const inputValue = prompt(`${current.name} 사용자를 입력하세요.`, savedName);
-      if (inputValue === null) return;
-      const userName = inputValue.trim();
-      if (!userName) return;
-      localStorage.setItem("programUsageDashboardUserName", userName);
+      const savedName = (localStorage.getItem("programUsageDashboardUserName") || "").trim();
+      let userName = savedName;
+
+      // 사용자명이 브라우저에 저장되어 있으면 별도 입력창 없이 바로 사용합니다.
+      // 저장값이 없거나 삭제된 경우에만 기존 방식처럼 입력창을 띄웁니다.
+      if (!userName) {
+        const inputValue = prompt(`${current.name} 사용자를 입력하세요.`, "");
+        if (inputValue === null) return;
+        userName = inputValue.trim();
+        if (!userName) return;
+        localStorage.setItem("programUsageDashboardUserName", userName);
+      }
 
       if (current.inUse && current.userName && current.userName !== userName) {
         const ok = confirm(`현재 ${current.userName} 님이 사용 중입니다. ${userName} 님으로 변경할까요?`);
